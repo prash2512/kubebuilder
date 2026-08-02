@@ -275,9 +275,11 @@ func isValidVersion(version string, res *resource.Resource, cfg config.Config) b
 		return false
 	}
 
-	// Iterate through resources and validate if the given version exists for the same Group and Kind
+	// Iterate through resources and validate if the given version exists for the same resource.
+	// The match is by qualified group (group + domain) and kind so a spoke is only accepted when it
+	// is another version of the same API, not of an unrelated type that shares the short group.
 	for _, r := range resources {
-		if r.Group == res.Group && r.Kind == res.Kind && r.Version == version {
+		if r.QualifiedGroup() == res.QualifiedGroup() && r.Kind == res.Kind && r.Version == version {
 			return true
 		}
 	}

@@ -288,5 +288,23 @@ var _ = Describe("createWebhookSubcommand", func() {
 			otherRes := &resource.Resource{GVK: differentRes.GVK}
 			Expect(isValidVersion("v2", otherRes, cfg)).To(BeFalse())
 		})
+
+		It("should return false when only the short group matches but the domain differs", func() {
+			// A different type that shares the short group and kind but lives under another domain
+			// (e.g. an external API). Its version must not be accepted as a spoke of res.
+			// v3 exists only under crewGroup/other.io, never under res's crewGroup/test.io.
+			foreignRes := resource.Resource{
+				GVK: resource.GVK{
+					Group:   crewGroup,
+					Domain:  "other.io",
+					Version: "v3",
+					Kind:    captainKind,
+				},
+				External: true,
+			}
+			Expect(cfg.AddResource(foreignRes)).To(Succeed())
+
+			Expect(isValidVersion("v3", res, cfg)).To(BeFalse())
+		})
 	})
 })
